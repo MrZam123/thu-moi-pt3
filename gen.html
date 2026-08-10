@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tạo Link Mời Họp Lớp – PT3</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="description" content="Công cụ tạo link thư mời họp lớp PT3 THPT Chuyên Nguyễn Huệ Hà Đông kèm QR Code." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #0a0e1a;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---- Starfield ---- */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ---- Shimmer text ---- */
+    .shimmer-text {
+      background: linear-gradient(90deg, #f59e0b 20%, #fde68a 40%, #f59e0b 60%, #fbbf24 80%, #f59e0b 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 2.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    /* ---- Glass card ---- */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(251, 191, 36, 0.18);
+      border-radius: 1.75rem;
+    }
+
+    /* ---- Input ---- */
+    .input-field {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid rgba(251, 191, 36, 0.25);
+      border-radius: 0.85rem;
+      color: #fff;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 1rem;
+      padding: 0.875rem 1.25rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .input-field:focus {
+      border-color: rgba(251, 191, 36, 0.65);
+      box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12);
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    /* ---- Gold Button ---- */
+    .btn-gold {
+      background: linear-gradient(135deg, #f59e0b, #fbbf24, #f59e0b);
+      background-size: 200% auto;
+      color: #0a0e1a;
+      font-weight: 700;
+      border-radius: 0.85rem;
+      padding: 0.875rem 2rem;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      transition: background-position 0.4s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 22px rgba(251, 191, 36, 0.4);
+      width: 100%;
+    }
+
+    .btn-gold:hover {
+      background-position: right center;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 36px rgba(251, 191, 36, 0.65);
+    }
+
+    .btn-gold:active {
+      transform: scale(0.97);
+    }
+
+    .btn-gold:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ---- Outline Button ---- */
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(251, 191, 36, 0.45);
+      color: #fbbf24;
+      font-weight: 600;
+      border-radius: 0.85rem;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      transition: all 0.25s ease;
+    }
+
+    .btn-outline:hover {
+      background: rgba(251, 191, 36, 0.1);
+      border-color: rgba(251, 191, 36, 0.7);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline:active {
+      transform: scale(0.97);
+    }
+
+    /* ---- Result card ---- */
+    .result-card {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1.5px solid rgba(251, 191, 36, 0.25);
+      border-radius: 1rem;
+      padding: 1.25rem;
+    }
+
+    /* ---- Link display ---- */
+    .link-display {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: 0.65rem;
+      padding: 0.75rem 1rem;
+      word-break: break-all;
+      color: #fde68a;
+      font-size: 0.875rem;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      line-height: 1.5;
+      cursor: text;
+      user-select: all;
+    }
+
+    /* ---- QR container ---- */
+    #qr-container canvas,
+    #qr-container img {
+      border-radius: 0.75rem;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* ---- Divider ---- */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(251, 191, 36, 0.35), transparent);
+    }
+
+    /* ---- Toast ---- */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(22, 14, 50, 0.95);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      color: #fde68a;
+      border-radius: 999px;
+      padding: 0.65rem 1.5rem;
+      font-size: 0.875rem;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1), opacity 0.4s ease;
+      opacity: 0;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ---- Result section animate ---- */
+    #result-section {
+      display: none;
+      animation: fadeSlideIn 0.6s cubic-bezier(.4, 0, .2, 1) forwards;
+    }
+
+    #result-section.visible {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ---- Sparkle ---- */
+    @keyframes sparkle {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.45);
+        opacity: 0.55;
+      }
+    }
+
+    .sparkle {
+      animation: sparkle 1.6s ease-in-out infinite;
+    }
+
+    /* ---- Pulse glow ---- */
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 18px rgba(251, 191, 36, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 40px rgba(251, 191, 36, 0.65);
+      }
+    }
+
+    .pulse-glow-card {
+      animation: pulseGlow 2.5s ease-in-out infinite;
+    }
+
+    /* ---- Badge ---- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 1rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: rgba(251, 191, 36, 0.09);
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      color: #fbbf24;
+    }
+
+    /* ---- Step indicator ---- */
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .step-num {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: #fbbf24;
+    }
+
+    .step-label {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- Floating particles ---- */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      animation: petalFall linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes petalFall {
+      0% {
+        transform: translateY(-60px) rotate(0deg);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 0.7;
+      }
+
+      90% {
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(251, 191, 36, 0.25);
+      border-radius: 99px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="stars-canvas"></canvas>
+  <div id="petals-container"></div>
+
+  <!-- Toast -->
+  <div id="toast"><i class="fa-solid fa-check mr-2"></i><span id="toast-msg">Đã sao chép!</span></div>
+
+  <!-- Main -->
+  <main class="relative z-10 min-h-screen flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-lg">
+
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <div class="badge mb-6">
+          <i class="fa-solid fa-star sparkle" style="color:#f59e0b;"></i>
+          THPT Chuyên Nguyễn Huệ – PT3
+          <i class="fa-solid fa-star sparkle" style="color:#f59e0b; animation-delay:0.5s;"></i>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold shimmer-text mb-3"
+          style="font-family:'Playfair Display',serif; line-height:1.2;">
+          Tạo Link Mời
+        </h1>
+        <p class="text-white/45 text-sm leading-relaxed">
+          Nhập tên bạn bè, tạo link cá nhân hoá &amp; QR code để chia sẻ lời mời họp lớp!
+        </p>
+      </div>
+
+      <!-- Generator Card -->
+      <div class="glass-card p-7 md:p-9 pulse-glow-card">
+
+        <!-- Step 1 -->
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <p class="text-white/80 text-sm font-semibold">Nhập tên người được mời</p>
+            <p class="step-label">Ví dụ: Nguyễn Văn An, Trần Thị Bình...</p>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400/60">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <input id="name-input" type="text" class="input-field pl-10" placeholder="Nhập tên bạn bè..." maxlength="60"
+              autocomplete="off" onkeydown="if(event.key==='Enter') generateLink()" />
+          </div>
+          <p class="text-white/30 text-xs mt-2 ml-1">
+            <i class="fa-solid fa-circle-info mr-1"></i>
+            Tên sẽ hiển thị trong thư mời cá nhân
+          </p>
+        </div>
+
+        <!-- Step 2 label -->
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <p class="text-white/80 text-sm font-semibold">Tạo link &amp; QR Code</p>
+            <p class="step-label">Nhấn nút bên dưới để tạo</p>
+          </div>
+        </div>
+
+        <button id="gen-btn" class="btn-gold" onclick="generateLink()">
+          <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>
+          Tạo Link Mời
+        </button>
+
+        <!-- Divider -->
+        <div class="divider my-7"></div>
+
+        <!-- Result section -->
+        <div id="result-section">
+
+          <!-- Name badge -->
+          <div class="text-center mb-6">
+            <p class="text-white/40 text-xs mb-2 uppercase tracking-widest">Thư mời dành cho</p>
+            <div class="inline-block text-2xl font-bold shimmer-text" id="result-name"
+              style="font-family:'Playfair Display',serif; font-style:italic;"></div>
+          </div>
+
+          <!-- Link display -->
+          <div class="result-card mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-white/40 text-xs uppercase tracking-widest flex items-center gap-1">
+                <i class="fa-solid fa-link text-yellow-400/60"></i> Link mời
+              </span>
+              <button class="btn-outline text-xs py-1 px-3" onclick="copyLink()">
+                <i class="fa-solid fa-copy mr-1"></i> Sao chép
+              </button>
+            </div>
+            <div class="link-display" id="link-display" onclick="selectAll(this)"></div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex gap-3 mb-6">
+            <button class="btn-outline flex-1 text-sm" onclick="openPreview()">
+              <i class="fa-solid fa-eye mr-1.5"></i> Xem thử
+            </button>
+            <button class="btn-outline flex-1 text-sm" onclick="shareLink()">
+              <i class="fa-solid fa-share-nodes mr-1.5"></i> Chia sẻ
+            </button>
+          </div>
+
+          <!-- QR section -->
+          <div class="result-card text-center">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-white/40 text-xs uppercase tracking-widest flex items-center gap-1">
+                <i class="fa-solid fa-qrcode text-yellow-400/60"></i> QR Code
+              </span>
+              <button class="btn-outline text-xs py-1 px-3" onclick="downloadQR()">
+                <i class="fa-solid fa-download mr-1"></i> Tải xuống
+              </button>
+            </div>
+
+            <div id="qr-wrapper" class="rounded-2xl p-3 inline-block" style="background:#fff;">
+              <div id="qr-container"></div>
+            </div>
+
+            <p class="text-white/30 text-xs mt-3">
+              <i class="fa-solid fa-mobile-screen mr-1"></i>
+              Quét QR bằng điện thoại để mở thư mời
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Link to invitation -->
+      <div class="text-center mt-8">
+        <a href="./index.html" class="text-yellow-400/60 hover:text-yellow-400 text-sm transition-colors duration-200"
+          style="text-decoration:none;">
+          <i class="fa-solid fa-arrow-left mr-1.5"></i> Về trang thư mời chính
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // ---- Starfield ----
+    const canvas = document.getElementById('stars-canvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < 180; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.5 + 0.2,
+          alpha: Math.random(),
+          dAlpha: (Math.random() - 0.5) * 0.013,
+          speed: Math.random() * 0.07 + 0.01,
+        });
+      }
+    }
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        s.alpha += s.dAlpha;
+        if (s.alpha <= 0.05 || s.alpha >= 1) s.dAlpha *= -1;
+        s.y += s.speed;
+        if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(251,191,36,${s.alpha * 0.5})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+    resizeCanvas(); initStars(); drawStars();
+    window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+    // ---- Particles ----
+    const pc = document.getElementById('petals-container');
+    ['✨', '⭐', '🌟', '💫', '·', '✦'].forEach((e, i) => {
+      for (let j = 0; j < 3; j++) {
+        const p = document.createElement('div');
+        p.className = 'petal';
+        p.textContent = e;
+        p.style.cssText = `left:${Math.random() * 100}vw; font-size:${Math.random() * 12 + 7}px; animation-duration:${Math.random() * 12 + 9}s; animation-delay:${Math.random() * 10}s;`;
+        pc.appendChild(p);
+      }
+    });
+
+    // ---- Toast ----
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ---- State ----
+    const BASE_URL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+    let currentLink = '';
+    let qrInstance = null;
+
+    // ---- Generate ----
+    function generateLink() {
+      const nameInput = document.getElementById('name-input');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        nameInput.focus();
+        nameInput.style.borderColor = 'rgba(239,68,68,0.7)';
+        nameInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.12)';
+        showToast('⚠️ Vui lòng nhập tên người được mời!');
+        setTimeout(() => {
+          nameInput.style.borderColor = '';
+          nameInput.style.boxShadow = '';
+        }, 1500);
+        return;
+      }
+
+      const encoded = encodeURIComponent(name);
+      currentLink = `${BASE_URL}/index.html?name=${encoded}`;
+
+      // Update UI
+      document.getElementById('result-name').textContent = name;
+      document.getElementById('link-display').textContent = currentLink;
+
+      // Show result section
+      const rs = document.getElementById('result-section');
+      rs.classList.add('visible');
+
+      // Generate QR
+      generateQR(currentLink);
+      showToast('✨ Đã tạo link thành công!');
+
+      // Scroll to result
+      setTimeout(() => rs.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+    }
+
+    function generateQR(url) {
+      const container = document.getElementById('qr-container');
+      container.innerHTML = '';
+      qrInstance = new QRCode(container, {
+        text: url,
+        width: 220,
+        height: 220,
+        colorDark: '#1e0a3c',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H,
+      });
+    }
+
+    // ---- Copy link ----
+    function copyLink() {
+      if (!currentLink) return;
+      navigator.clipboard.writeText(currentLink)
+        .then(() => showToast('✅ Đã sao chép link!'))
+        .catch(() => {
+          // fallback
+          const ta = document.createElement('textarea');
+          ta.value = currentLink;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showToast('✅ Đã sao chép link!');
+        });
+    }
+
+    // ---- Select all on click ----
+    function selectAll(el) {
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // ---- Open preview ----
+    function openPreview() {
+      if (!currentLink) return;
+      window.open(currentLink, '_blank');
+    }
+
+    // ---- Share ----
+    async function shareLink() {
+      if (!currentLink) return;
+      const name = document.getElementById('result-name').textContent;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Thư mời họp lớp PT3 – dành cho ${name}`,
+            text: `🎉 Bạn ${name} ơi, lớp PT3 mình họp lớp ngày 06/09/2026! Bấm link để xem thư mời nhé!`,
+            url: currentLink,
+          });
+        } catch (e) { /* user cancelled */ }
+      } else {
+        copyLink();
+      }
+    }
+
+    // ---- Download QR (Beautiful Card) ----
+    function downloadQR() {
+      if (!currentLink) return;
+      const guestName = document.getElementById('name-input').value.trim() || 'Bạn thân mến';
+      const qrContainer = document.getElementById('qr-container');
+      const qrSource = qrContainer.querySelector('canvas') || qrContainer.querySelector('img');
+      if (!qrSource) return;
+
+      // Card dimensions
+      const W = 800, H = 1400;
+      const card = document.createElement('canvas');
+      card.width = W; card.height = H;
+      const c = card.getContext('2d');
+
+      /* ── 1. Background gradient ── */
+      const bgGrad = c.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#0d0820');
+      bgGrad.addColorStop(0.5, '#12102a');
+      bgGrad.addColorStop(1, '#0a0e1a');
+      c.fillStyle = bgGrad;
+      c.fillRect(0, 0, W, H);
+
+      /* ── 2. Radial glow center ── */
+      const glow = c.createRadialGradient(W / 2, H * 0.38, 60, W / 2, H * 0.38, 420);
+      glow.addColorStop(0, 'rgba(245,158,11,0.13)');
+      glow.addColorStop(0.6, 'rgba(245,158,11,0.04)');
+      glow.addColorStop(1, 'transparent');
+      c.fillStyle = glow;
+      c.fillRect(0, 0, W, H);
+
+      /* ── 3. Outer border (rounded rect) ── */
+      const r = 40;
+      c.save();
+      roundRect(c, 18, 18, W - 36, H - 36, r);
+      c.strokeStyle = 'rgba(251,191,36,0.55)';
+      c.lineWidth = 2;
+      c.stroke();
+      c.restore();
+
+      /* inner thin border */
+      c.save();
+      roundRect(c, 28, 28, W - 56, H - 56, r - 6);
+      c.strokeStyle = 'rgba(251,191,36,0.18)';
+      c.lineWidth = 1;
+      c.stroke();
+      c.restore();
+
+      /* ── 4. Top decorative band ── */
+      const topGrad = c.createLinearGradient(0, 0, W, 0);
+      topGrad.addColorStop(0, 'rgba(245,158,11,0)');
+      topGrad.addColorStop(0.3, 'rgba(245,158,11,0.35)');
+      topGrad.addColorStop(0.5, 'rgba(251,191,36,0.55)');
+      topGrad.addColorStop(0.7, 'rgba(245,158,11,0.35)');
+      topGrad.addColorStop(1, 'rgba(245,158,11,0)');
+      c.fillStyle = topGrad;
+      c.fillRect(0, 0, W, 6);
+
+      /* bottom band */
+      c.fillStyle = topGrad;
+      c.fillRect(0, H - 6, W, 6);
+
+      /* ── 5. Stars (random dots) ── */
+      const rng = (n) => Math.floor(Math.random() * n);
+      c.save();
+      for (let i = 0; i < 90; i++) {
+        const sx = rng(W), sy = rng(H);
+        const sr = Math.random() * 1.4 + 0.3;
+        const sa = Math.random() * 0.5 + 0.1;
+        c.beginPath();
+        c.arc(sx, sy, sr, 0, Math.PI * 2);
+        c.fillStyle = `rgba(251,191,36,${sa})`;
+        c.fill();
+      }
+      c.restore();
+
+      /* ── 6. Logo / seal circle ── */
+      const sealX = W / 2, sealY = 130, sealR = 58;
+      // outer glow
+      const sealGlow = c.createRadialGradient(sealX, sealY, 0, sealX, sealY, sealR + 30);
+      sealGlow.addColorStop(0, 'rgba(251,191,36,0.25)');
+      sealGlow.addColorStop(1, 'transparent');
+      c.fillStyle = sealGlow;
+      c.beginPath(); c.arc(sealX, sealY, sealR + 30, 0, Math.PI * 2); c.fill();
+      // fill
+      const sealFill = c.createRadialGradient(sealX - 10, sealY - 10, 10, sealX, sealY, sealR);
+      sealFill.addColorStop(0, 'rgba(245,158,11,0.28)');
+      sealFill.addColorStop(1, 'rgba(245,158,11,0.08)');
+      c.fillStyle = sealFill;
+      c.beginPath(); c.arc(sealX, sealY, sealR, 0, Math.PI * 2); c.fill();
+      // border
+      c.strokeStyle = 'rgba(251,191,36,0.75)';
+      c.lineWidth = 2;
+      c.beginPath(); c.arc(sealX, sealY, sealR, 0, Math.PI * 2); c.stroke();
+      // inner ring
+      c.strokeStyle = 'rgba(251,191,36,0.3)';
+      c.lineWidth = 1;
+      c.beginPath(); c.arc(sealX, sealY, sealR - 10, 0, Math.PI * 2); c.stroke();
+      // text PT3
+      c.fillStyle = '#fbbf24';
+      c.font = 'bold 32px serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText('PT3', sealX, sealY);
+
+      /* ── 7. School name ── */
+      c.fillStyle = 'rgba(251,191,36,0.7)';
+      c.font = '500 22px "Be Vietnam Pro", sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'alphabetic';
+      c.fillText('THPT Chuyên Nguyễn Huệ – Hà Đông', W / 2, 218);
+
+      /* ── 8. Divider line ── */
+      drawDivider(c, W / 2, 238, 320);
+
+      /* ── 9. "THƯ MỜI HỌP LỚP" heading ── */
+      // shadow glow
+      c.save();
+      c.shadowColor = 'rgba(251,191,36,0.55)';
+      c.shadowBlur = 24;
+      c.fillStyle = '#fde68a';
+      c.font = 'bold 52px "Playfair Display", Georgia, serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'alphabetic';
+      c.fillText('THƯ MỜI HỌP LỚP', W / 2, 302);
+      c.restore();
+
+      /* ── 10. "Kính gửi" label ── */
+      c.fillStyle = 'rgba(255,255,255,0.42)';
+      c.font = '400 20px "Be Vietnam Pro", sans-serif';
+      c.textAlign = 'center';
+      c.fillText('✦  Kính gửi  ✦', W / 2, 348);
+
+      /* ── 11. Guest Name (large, gold) ── */
+      // name pill background
+      const namePillW = Math.min(guestName.length * 34 + 80, W - 120);
+      const namePillH = 74;
+      const namePillX = W / 2 - namePillW / 2;
+      const namePillY = 362;
+      c.save();
+      roundRect(c, namePillX, namePillY, namePillW, namePillH, 16);
+      const nameBg = c.createLinearGradient(namePillX, namePillY, namePillX + namePillW, namePillY + namePillH);
+      nameBg.addColorStop(0, 'rgba(251,191,36,0.18)');
+      nameBg.addColorStop(1, 'rgba(251,191,36,0.07)');
+      c.fillStyle = nameBg;
+      c.fill();
+      c.strokeStyle = 'rgba(251,191,36,0.45)';
+      c.lineWidth = 1.5;
+      c.stroke();
+      c.restore();
+      // Name text
+      c.save();
+      c.shadowColor = 'rgba(251,191,36,0.6)';
+      c.shadowBlur = 18;
+      // adaptive font size
+      let nameFontSize = 42;
+      c.font = `bold italic ${nameFontSize}px "Playfair Display", Georgia, serif`;
+      while (c.measureText(guestName).width > namePillW - 40 && nameFontSize > 22) {
+        nameFontSize -= 2;
+        c.font = `bold italic ${nameFontSize}px "Playfair Display", Georgia, serif`;
+      }
+      c.fillStyle = '#fde68a';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(guestName, W / 2, namePillY + namePillH / 2);
+      c.restore();
+
+      /* ── 12. Divider ── */
+      drawDivider(c, W / 2, 460, 260);
+
+      /* ── 13. Event info blocks ── */
+      const infoY = 490;
+      // Three columns: date | location | class
+      const cols = [
+        { icon: '📅', label: 'Ngày', value: '06 / 09 / 2026', sub: 'Chủ Nhật' },
+        { icon: '📍', label: 'Địa điểm', value: 'Hà Đông', sub: 'Hà Nội' },
+        { icon: '🎓', label: 'Lớp', value: 'PT3', sub: 'Chuyên Nguyễn Huệ' },
+      ];
+      const colW = (W - 120) / 3;
+      cols.forEach((col, i) => {
+        const cx = 60 + colW * i + colW / 2;
+        // box
+        c.save();
+        roundRect(c, 60 + colW * i, infoY, colW - 16, 130, 16);
+        const boxBg = c.createLinearGradient(0, infoY, 0, infoY + 130);
+        boxBg.addColorStop(0, 'rgba(251,191,36,0.1)');
+        boxBg.addColorStop(1, 'rgba(251,191,36,0.04)');
+        c.fillStyle = boxBg;
+        c.fill();
+        c.strokeStyle = 'rgba(251,191,36,0.28)';
+        c.lineWidth = 1;
+        c.stroke();
+        c.restore();
+        // icon
+        c.font = '26px sans-serif';
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText(col.icon, cx, infoY + 28);
+        // label
+        c.fillStyle = 'rgba(255,255,255,0.4)';
+        c.font = '400 13px "Be Vietnam Pro", sans-serif';
+        c.textAlign = 'center';
+        c.textBaseline = 'alphabetic';
+        c.fillText(col.label.toUpperCase(), cx, infoY + 60);
+        // value
+        c.fillStyle = '#fde68a';
+        c.font = `bold ${col.value.length > 8 ? 17 : 22}px "Playfair Display", Georgia, serif`;
+        c.fillText(col.value, cx, infoY + 87);
+        // sub
+        c.fillStyle = 'rgba(255,255,255,0.38)';
+        c.font = '400 12px "Be Vietnam Pro", sans-serif';
+        c.fillText(col.sub, cx, infoY + 108);
+      });
+
+      /* ── 14. QR Code (rendered from QRCode.js canvas/img) ── */
+      const qrSize = 440;
+      const qrX = W / 2 - qrSize / 2;
+      const qrY = 700;
+
+      // QR white background card
+      c.save();
+      roundRect(c, qrX - 20, qrY - 20, qrSize + 40, qrSize + 40, 20);
+      c.fillStyle = '#ffffff';
+      c.fill();
+      // Gold border
+      c.strokeStyle = 'rgba(251,191,36,0.7)';
+      c.lineWidth = 3;
+      c.stroke();
+      c.restore();
+
+      // corner ornaments
+      drawCornerStar(c, qrX - 20, qrY - 20);
+      drawCornerStar(c, qrX + qrSize + 20, qrY - 20);
+      drawCornerStar(c, qrX - 20, qrY + qrSize + 20);
+      drawCornerStar(c, qrX + qrSize + 20, qrY + qrSize + 20);
+
+      // Draw QR image
+      if (qrSource.tagName === 'CANVAS') {
+        c.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
+      } else {
+        // img element — draw via image object (already loaded)
+        c.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
+      }
+
+      /* ── 15. "Quét để xem thư mời" label ── */
+      c.fillStyle = 'rgba(255,255,255,0.38)';
+      c.font = '400 18px "Be Vietnam Pro", sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'alphabetic';
+      c.fillText('▲  Quét QR để xem thư mời cá nhân  ▲', W / 2, 1238);
+
+      /* ── 16. Bottom divider ── */
+      drawDivider(c, W / 2, 1262, 280);
+
+      /* ── 17. Footer text ── */
+      c.fillStyle = 'rgba(251,191,36,0.55)';
+      c.font = 'italic bold 20px "Playfair Display", Georgia, serif';
+      c.textAlign = 'center';
+      c.fillText('✦  PT3 – THPT Chuyên Nguyễn Huệ  ✦', W / 2, 1302);
+      c.fillStyle = 'rgba(255,255,255,0.22)';
+      c.font = '400 15px "Be Vietnam Pro", sans-serif';
+      c.fillText('Họp lớp ngày 06/09/2026 • Cùng ôn lại kỷ niệm!', W / 2, 1330);
+
+      /* ── Export ── */
+      const link = document.createElement('a');
+      link.download = `thu-moi-pt3-${guestName.replace(/\s+/g, '-')}.png`;
+      link.href = card.toDataURL('image/png');
+      link.click();
+      showToast('📥 Đã tải ảnh thư mời!');
+    }
+
+    /* ── Helper: rounded rect path ── */
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    /* ── Helper: horizontal divider ── */
+    function drawDivider(ctx, cx, y, halfW) {
+      const grad = ctx.createLinearGradient(cx - halfW, y, cx + halfW, y);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(0.5, 'rgba(251,191,36,0.5)');
+      grad.addColorStop(1, 'transparent');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - halfW, y);
+      ctx.lineTo(cx + halfW, y);
+      ctx.stroke();
+    }
+
+    /* ── Helper: corner star ornament ── */
+    function drawCornerStar(ctx, x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(251,191,36,0.85)';
+      ctx.font = '16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('✦', 0, 0);
+      ctx.restore();
+    }
+
+    // ---- Enter key support ----
+    document.getElementById('name-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generateLink();
+    });
+  </script>
+
+</body>
+
+</html>

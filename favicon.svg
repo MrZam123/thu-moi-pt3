@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 20 220 160" width="200" height="200" fill="none">
+  <!-- Background circle glow -->
+  <circle cx="100" cy="97" r="108" fill="rgba(13,8,32,0.95)"/>
+  <!-- Envelope body -->
+  <rect x="4" y="32" width="192" height="110" rx="10" fill="rgba(22,14,50,0.95)" stroke="rgba(251,191,36,0.65)" stroke-width="2"/>
+  <!-- Bottom V -->
+  <path d="M4 142 L100 82 L196 142" fill="rgba(18,11,40,0.95)" stroke="rgba(251,191,36,0.35)" stroke-width="1.2"/>
+  <!-- Top flap -->
+  <path d="M4 32 L100 88 L196 32" fill="rgba(30,18,60,0.95)" stroke="rgba(251,191,36,0.7)" stroke-width="2"/>
+  <!-- Sides -->
+  <path d="M4 32 L4 142" stroke="rgba(251,191,36,0.25)" stroke-width="1"/>
+  <path d="M196 32 L196 142" stroke="rgba(251,191,36,0.25)" stroke-width="1"/>
+  <!-- Wax seal glow -->
+  <circle cx="100" cy="87" r="24" fill="rgba(245,158,11,0.18)"/>
+  <!-- Wax seal outer -->
+  <circle cx="100" cy="87" r="18" fill="rgba(245,158,11,0.28)" stroke="rgba(251,191,36,0.8)" stroke-width="1.8"/>
+  <!-- Wax seal inner -->
+  <circle cx="100" cy="87" r="12" fill="rgba(245,158,11,0.18)" stroke="rgba(251,191,36,0.45)" stroke-width="1"/>
+  <!-- PT3 text -->
+  <text x="100" y="93" text-anchor="middle" fill="#fbbf24" font-size="13" font-family="Georgia, serif" font-weight="bold">PT3</text>
+</svg>
