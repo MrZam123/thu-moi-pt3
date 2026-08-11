@@ -413,6 +413,42 @@
 
     <div class="divider mx-6 md:mx-16 reveal"></div>
 
+    <!-- Countdown Section (Khôi phục lại) -->
+    <section class="py-20 px-4 max-w-4xl mx-auto text-center">
+      <div class="reveal mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2"
+          style="font-family:'Playfair Display',serif; color:rgba(255,255,255,0.9);">
+          Đếm Ngược Đến Ngày Gặp Nhau
+        </h2>
+        <div class="divider w-40 mx-auto mt-4"></div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-3 md:gap-6 reveal" style="transition-delay:0.2s;">
+        <div class="countdown-box p-5 md:p-7 pulse-glow">
+          <div class="text-4xl md:text-6xl font-bold shimmer-text" id="cd-days"
+            style="font-family:'Playfair Display',serif;">--</div>
+          <div class="text-white/40 text-xs mt-2 uppercase tracking-widest">Ngày</div>
+        </div>
+        <div class="countdown-box p-5 md:p-7">
+          <div class="text-4xl md:text-6xl font-bold shimmer-text" id="cd-hours"
+            style="font-family:'Playfair Display',serif;">--</div>
+          <div class="text-white/40 text-xs mt-2 uppercase tracking-widest">Giờ</div>
+        </div>
+        <div class="countdown-box p-5 md:p-7">
+          <div class="text-4xl md:text-6xl font-bold shimmer-text" id="cd-mins"
+            style="font-family:'Playfair Display',serif;">--</div>
+          <div class="text-white/40 text-xs mt-2 uppercase tracking-widest">Phút</div>
+        </div>
+        <div class="countdown-box p-5 md:p-7">
+          <div class="text-4xl md:text-6xl font-bold shimmer-text" id="cd-secs"
+            style="font-family:'Playfair Display',serif;">--</div>
+          <div class="text-white/40 text-xs mt-2 uppercase tracking-widest">Giây</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider mx-6 md:mx-16 reveal"></div>
+
     <!-- Letter body -->
     <section class="py-20 px-4 max-w-3xl mx-auto">
       <div class="glass-card p-8 md:p-12 reveal">
@@ -565,6 +601,25 @@
     const displayName = rawName ? decodeURIComponent(rawName) : 'Bạn thân mến';
     document.getElementById('guest-name').textContent = displayName;
     if (document.getElementById('guest-name-2')) document.getElementById('guest-name-2').textContent = rawName ? decodeURIComponent(rawName) : '';
+
+    // Khôi phục Countdown Timer
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function updateCountdown() {
+      const target = new Date('2026-09-06T09:00:00+07:00'); // 09:00 sáng ngày 06/09/2026
+      const diff = target - new Date();
+
+      if (diff <= 0) {
+        ['cd-days', 'cd-hours', 'cd-mins', 'cd-secs'].forEach(id => document.getElementById(id).textContent = '00');
+        return;
+      }
+
+      document.getElementById('cd-days').textContent = pad(Math.floor(diff / 86400000));
+      document.getElementById('cd-hours').textContent = pad(Math.floor((diff % 86400000) / 3600000));
+      document.getElementById('cd-mins').textContent = pad(Math.floor((diff % 3600000) / 60000));
+      document.getElementById('cd-secs').textContent = pad(Math.floor((diff % 60000) / 1000));
+    }
+    updateCountdown(); // Chạy ngay lần đầu
+    setInterval(updateCountdown, 1000); // Cập nhật mỗi giây
 
     // RSVP Logic Update
     async function confirmRSVP(type) {
