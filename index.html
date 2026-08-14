@@ -597,7 +597,7 @@
       const p = document.createElement('div');
       p.className = 'petal';
       p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      p.style.cssText = `left: ${Math.random() * 100} vw; font - size: ${Math.random() * 14 + 8} px; animation - duration: ${Math.random() * 12 + 10} s; animation - delay: ${Math.random() * 10} s; `;
+      p.style.cssText = `left: ${Math.random() * 100}vw; font-size: ${Math.random() * 14 + 8}px; animation-duration: ${Math.random() * 12 + 10}s; animation-delay: ${Math.random() * 10}s;`;
       petalContainer.appendChild(p);
     }
 
@@ -670,13 +670,15 @@
 
       // Check require phone
       if (!phoneVal) {
-        statusEl.innerHTML = ` < i class="fa-solid fa-triangle-exclamation" > < /i> Vui lòng nhập Số điện thoại để BTC liên hệ!`;
+        // ĐÃ SỬA: Xóa dấu cách thừa trong thẻ <i>
+        statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Số điện thoại để BTC liên hệ!`;
         statusEl.style.color = "#fbbf24";
         phoneInput.focus();
         return;
       }
 
-      statusEl.innerHTML = ` < i class="fa-solid fa-spinner fa-spin" > < /i> Đang gửi xác nhận...`;
+      // ĐÃ SỬA: Xóa dấu cách thừa trong thẻ <i>
+      statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi xác nhận...`;
       statusEl.style.color = "#fbbf24";
       btnAlone.disabled = true;
       btnFamily.disabled = true;
@@ -694,14 +696,16 @@
         // ĐIỀN SERVICE_ID VÀ TEMPLATE_ID CỦA BẠN VÀO ĐÂY
         await emailjs.send('service_qdf7i8l', 'template_6ab3g3e', templateParams);
 
-        statusEl.innerHTML = ` < i class="fa-solid fa-circle-check" > < /i> Cảm ơn bạn! Xác nhận đã được gửi thành công.`;
+        // ĐÃ SỬA: Xóa dấu cách thừa trong thẻ <i>
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Cảm ơn bạn! Xác nhận đã được gửi thành công.`;
         statusEl.style.color = "#4ade80";
         btnAlone.style.display = 'none';
         btnFamily.style.display = 'none';
 
       } catch (error) {
         console.error('EmailJS Error:', error);
-        statusEl.innerHTML = ` < i class="fa-solid fa-circle-exclamation" > < /i> Có lỗi xảy ra, vui lòng thử lại sau.`;
+        // ĐÃ SỬA: Xóa dấu cách thừa trong thẻ <i>
+        statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Có lỗi xảy ra, vui lòng thử lại sau.`;
         statusEl.style.color = "#f87171";
         btnAlone.disabled = false;
         btnFamily.disabled = false;
